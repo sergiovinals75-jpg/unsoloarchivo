@@ -25,6 +25,25 @@
   .clip{display:grid;grid-template-columns:370px 1fr;gap:42px;align-items:start}
   @media(max-width:860px){.clip{grid-template-columns:1fr;gap:22px}}
 
+  /* --- CUANDO SE LLEGA POR UN ENLACE CON ANCLA -------------------------------
+     El comentario fijado de cada video apunta a <url>/#nombre-del-clip, asi que el que llega
+     aterriza EN SU animacion. El ancla ya funcionaba, pero no se NOTABA: caia en la misma
+     pagina con las seis y no habia forma de saber cual era la del video que acababa de ver.
+
+     Se resuelve con `:target`, que es CSS puro y no necesita ni una linea de JavaScript: el
+     navegador ya sabe cual es el elemento apuntado. Si algun dia se quita el ancla del enlace,
+     esto deja de marcar nada y no se rompe nada.
+
+     `scroll-margin-top` es el otro detalle: sin el, el clip aterriza pegado al borde de arriba
+     de la ventana, sin un respiro. */
+  .clip{scroll-margin-top:56px}
+  .clip:target h2::before{content:'EL DE ESTE VÍDEO';display:inline-block;margin-bottom:14px;
+    font-size:11px;font-weight:700;letter-spacing:.16em;padding:5px 12px;border-radius:99px;
+    background:rgba(34,211,238,.14);border:1px solid rgba(34,211,238,.42);color:var(--acento2)}
+  .clip:target .movil{border-color:#1a1d28;box-shadow:0 0 0 2px var(--acento2),
+    0 0 0 14px rgba(34,211,238,.13),0 30px 70px rgba(0,0,0,.6),0 0 130px rgba(34,211,238,.20)}
+  .clip:target .que{color:#fff}
+
   .movil{width:370px;height:802px;max-width:100%;border-radius:46px;overflow:hidden;
     background:#000;border:12px solid #1a1d28;box-shadow:0 0 0 2px #3d4459,
     0 30px 70px rgba(0,0,0,.6),0 0 120px rgba(124,92,255,.14)}
