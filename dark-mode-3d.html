@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dark Mode 3D</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:#0b0d13;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+
+  /* Dos capas con EL MISMO contenido y distinto tema, una encima de otra. El cambio de
+     modo no es una transicion de colores: es un circulo que crece desde el interruptor
+     y va descubriendo la capa de arriba. Por eso el contenido se construye una sola vez
+     y se copia en las dos, y por eso las dos capas no pueden divergir. */
+  .capa{position:fixed;inset:0;transition:none}
+  .capa.clara{clip-path:circle(0px at 50% 84%);will-change:clip-path}
+
+  .osc .app{--tinta:#eef1ff;--tenue:#8b94b6;--panel:rgba(255,255,255,.055);
+    --borde:rgba(255,255,255,.09);--fondo:#0b0d13;--acento:#7c5cff;--acento2:#22d3ee}
+  .cla .app{--tinta:#12151f;--tenue:#6a738c;--panel:rgba(15,20,40,.045);
+    --borde:rgba(15,20,40,.09);--fondo:#f3f5fb;--acento:#6b46ff;--acento2:#0ea5c4}
+
+  .app{position:absolute;inset:0;background:var(--fondo);color:var(--tinta);
+    display:flex;flex-direction:column;padding:8vh 7vw 0}
+  .cab{display:flex;align-items:center;justify-content:space-between}
+  .cab b{font-size:4.4vw;font-weight:800;letter-spacing:-.03em}
+  .cab span{font-size:1.3vh;letter-spacing:.26em;text-transform:uppercase;color:var(--tenue)}
+
+  .filas{margin-top:3.6vh;display:grid;gap:1.2vh}
+  .fila{display:flex;align-items:center;gap:1.6vh;padding:1.7vh 3.4vw;border-radius:2vh;
+    background:var(--panel);border:1px solid var(--borde)}
+  .fila i{width:4.4vh;height:4.4vh;border-radius:1.3vh;flex:0 0 auto;
+    background:linear-gradient(140deg,var(--acento),var(--acento2))}
+  .fila b{display:block;font-size:1.75vh;font-weight:600}
+  .fila s{display:block;font-size:1.3vh;color:var(--tenue);text-decoration:none;margin-top:.2vh}
+  .fila em{margin-left:auto;font-style:normal;font-size:1.5vh;color:var(--tenue)}
+
+  /* Las barras crecen solas: es lo unico que se mueve mientras se lee, y da vida sin
+     pedir atencion. Alturas por variable para que las dos capas sean identicas. */
+  .grafica{margin-top:3.6vh;height:22vh;display:flex;align-items:flex-end;gap:2.4vw}
+  .grafica u{flex:1;height:var(--h);border-radius:1.2vh 1.2vh .5vh .5vh;
+    background:linear-gradient(180deg,var(--acento2),var(--acento));opacity:.9;
+    transform-origin:bottom;transition:none}
+
+  /* ---- el interruptor, en 3D ---- */
+  .zona{position:fixed;left:0;right:0;bottom:6vh;display:grid;place-items:center;
+    perspective:600px}
+  .interruptor{width:26vw;height:13vw;border-radius:99px;position:relative;
+    transform-style:preserve-3d;background:var(--pista);
+    border:1px solid var(--bordei);transition:none}
+  .bola{position:absolute;top:1.6vw;left:1.6vw;width:9.8vw;height:9.8vw;border-radius:50%;
+    transform-style:preserve-3d;
+    background:radial-gradient(circle at 34% 30%,#fff,var(--bola) 64%);
+    border:1px solid var(--bolab);
+    box-shadow:0 1.4vw 3vw rgba(0,0,0,.45)}
+  /* La pista y la bola tienen que verse en LOS DOS temas. En oscuro una bola gris sobre
+     una pista casi negra no se ve, y en claro una bola clara sobre una pista blanca
+     desaparece: el interruptor es el protagonista del video y no puede fundirse. */
+  .osc .interruptor,.interruptor{--pista:rgba(255,255,255,.18);--bordei:rgba(255,255,255,.30);
+    --bola:#5b6484;--bolab:rgba(255,255,255,.55)}
+  body.clara .interruptor{--pista:rgba(20,26,50,.22);--bordei:rgba(20,26,50,.26);
+    --bola:#ffb020;--bolab:rgba(120,70,0,.35)}
+  .rotulo{position:fixed;left:0;right:0;bottom:1.9vh;text-align:center;font-size:1.25vh;
+    letter-spacing:.3em;text-transform:uppercase;color:#8b94b6}
+  body.clara .rotulo{color:#6a738c}
+</style>
+</head>
+<body>
+<div class="capa osc" id="capaOsc"><div class="app" id="app1"></div></div>
+<div class="capa cla clara" id="capaCla"><div class="app" id="app2"></div></div>
+<div class="zona"><div class="interruptor" id="sw"><div class="bola" id="bola"></div></div></div>
+<p class="rotulo" id="rotulo">modo oscuro</p>
+
+<script>
+// -------------------------------------------------------- contenido unico ----
+const FILAS = [["Retencion", "ultimos 7 dias", "62 %"],
+               ["Bucles", "por video", "1,8"],
+               ["Duracion", "media", "40 s"]];
+const BARRAS = [0.42, 0.61, 0.38, 0.78, 0.55, 0.92, 0.70];
+
+const plantilla = `
+  <div class="cab"><b>Panel</b><span>mente curiosa</span></div>
+  <div class="filas">${FILAS.map(([a, b, c]) =>
+    `<div class="fila"><i></i><div><b>${a}</b><s>${b}</s></div><em>${c}</em></div>`).join('')}</div>
+  <div class="grafica">${BARRAS.map((h) => `<u style="--h:${h * 100}%"></u>`).join('')}</div>`;
+
+document.getElementById('app1').innerHTML = plantilla;
+document.getElementById('app2').innerHTML = plantilla;
+
+const capaCla = document.getElementById('capaCla');
+const bola = document.getElementById('bola');
+const rotulo = document.getElementById('rotulo');
+const barras = [...document.querySelectorAll('.grafica u')];
+
+// ------------------------------------------------------------- el recorrido ----
+// Cuatro fases: oscuro -> gira -> claro -> gira -> oscuro. El interruptor no salta de
+// un lado al otro: GIRA en el eje Y mientras viaja, que es lo que le da el 3D.
+function dibujar(t) {
+  const total = (window.__DURACION_MS || 26000) / 1000;
+  const P = Math.min(0.9999, (t % total) / total);
+
+  const fase = P * 4;                    // 4 fases de un cuarto cada una
+  const i = Math.min(3, Math.floor(fase));
+  const u = fase - i;
+
+  // k: 0 = oscuro del todo, 1 = claro del todo
+  let k, giro;
+  if (i === 0) { k = 0; giro = 0; }
+  else if (i === 1) { const s = u * u * (3 - 2 * u); k = s; giro = u * 180; }
+  else if (i === 2) { k = 1; giro = 180; }
+  else { const s = u * u * (3 - 2 * u); k = 1 - s; giro = 180 + u * 180; }
+
+  // el circulo crece desde el interruptor. 150vmax cubre cualquier pantalla desde ahi.
+  const radio = k * 150;
+  capaCla.style.clipPath = `circle(${radio.toFixed(2)}vmax at 50% 86%)`;
+
+  // el giro se completa en el primer 70 % del viaje: asi "aterriza" antes de parar
+  const viaje = Math.min(1, (i === 1 || i === 3) ? u / 0.7 : 1);
+  const x = 1.6 + 13.0 * (k) ;           // 1,6vw -> 14,6vw dentro de la pista
+  bola.style.transform =
+    `translateX(${x.toFixed(2)}vw) rotateY(${giro.toFixed(1)}deg) ` +
+    `rotateX(${(Math.sin(giro * Math.PI / 180) * 18).toFixed(1)}deg)`;
+  // la bola se achata en mitad del giro: sin eso no se percibe que esta girando
+  bola.style.scale = (1 - 0.22 * Math.sin(giro * Math.PI / 180)).toFixed(3);
+  void viaje;
+
+  rotulo.textContent = k < 0.5 ? 'modo oscuro' : 'modo claro';
+  // El interruptor vive FUERA de las dos capas de tema (no puede estar dentro de la que
+  // tapa a la otra), asi que sus colores no pueden venir de --tenue. Van por la clase del
+  // body, y se cambia en el mismo punto que el rotulo para que no digan cosas distintas.
+  document.body.classList.toggle('clara', k >= 0.5);
+
+  // Las barras respiran con el tiempo, no con la fase: si latieran con el cambio de
+  // tema, el ojo las ataria al interruptor y se perderia el efecto.
+  const a = t * 0.9;
+  barras.forEach((b, n) => {
+    const h = BARRAS[n] * (0.82 + 0.18 * Math.sin(a + n * 0.8));
+    b.style.transform = `scaleY(${h.toFixed(3)})`;
+  });
+}
+
+// -------------------------------------------------- modo captura (opcional) --
+let T = 0;
+window.__seek = function (ms) { T = ms / 1000; dibujar(T); };
+if (!window.__MODO_CAPTURA) {
+  const t0 = performance.now();
+  (function bucle(x) { dibujar((x - t0) / 1000); requestAnimationFrame(bucle); })(t0);
+} else {
+  dibujar(0);
+}
+</script>
+</body>
+</html>

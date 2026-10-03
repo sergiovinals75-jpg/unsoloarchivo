@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Como usar el codigo</title>
+<style>
+  body{background:#08090f;color:#eef1ff;max-width:760px;margin:0 auto;padding:8vh 24px 14vh;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.7;font-size:17px}
+  h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-bottom:20px}
+  h2{font-size:26px;margin:44px 0 14px;font-weight:750;letter-spacing:-.02em}
+  h3{font-size:20px;margin:32px 0 10px;font-weight:700}
+  p{margin:14px 0;color:#cdd3e8}
+  ul,ol{margin:14px 0 14px 26px;color:#cdd3e8} li{margin:7px 0}
+  a{color:#22d3ee}
+  strong{color:#fff}
+  hr{border:0;border-top:1px solid #232a35;margin:40px 0}
+  blockquote{margin:20px 0;padding:14px 20px;border-left:3px solid #7c5cff;
+    background:#0d1117;border-radius:0 10px 10px 0;color:#aeb6d0}
+  code{background:#111520;border:1px solid #232a35;border-radius:6px;padding:2px 7px;
+    font-family:ui-monospace,Consolas,monospace;font-size:15px}
+  pre{background:#0d1117;border:1px solid #232a35;border-radius:12px;padding:18px;
+    overflow-x:auto;margin:18px 0}
+  pre code{border:0;background:none;padding:0}
+</style></head>
+<body>
+<h1>Cómo usar el código — guía para quien nunca ha programado</h1>
+<blockquote>Esto es la versión larga, la que va **enlazada desde la descripción del canal y desde el</blockquote>
+<blockquote>comentario fijado**. En la descripción del canal (1.000 caracteres) sólo caben los cuatro</blockquote>
+<blockquote>pasos; el resto vive aquí.</blockquote>
+<p>La buena noticia: <strong>no hay nada que instalar</strong>. Ni programas, ni cuentas, ni conexión a</p>
+<p>internet. El código de cada vídeo es <strong>un solo archivo</strong> que se abre en el navegador que ya</p>
+<p>tienes. Si algo sale mal, se borra y se vuelve a copiar: no se puede romper nada.</p>
+<hr>
+<h2>Paso 1 — Copiar el código</h2>
+<p>El código está en <strong>el primer comentario fijado</strong> de cada vídeo, con un enlace.</p>
+<p>Hay dos maneras, y la segunda funciona siempre:</p>
+<ul>
+<li><strong>Si la página tiene un botón «Copiar»</strong>: púlsalo. Ya está.</li>
+<li><strong>Si no lo tiene</strong>: abre el enlace, pulsa dentro del recuadro del código y haz</li>
+<p>  <code>Ctrl + A</code> (seleccionar todo) y luego <code>Ctrl + C</code> (copiar).</p>
+</ul>
+<blockquote><strong>Cuidado con el <code>Ctrl + A</code> si la página tiene más cosas</strong>: seleccionaría también los</blockquote>
+<blockquote>títulos y los menús, y eso rompería el archivo. Si dudas, usa el botón «Raw» / «Ver</blockquote>
+<blockquote>crudo» de la página del código: ahí sólo está el código, sin nada más.</blockquote>
+<hr>
+<h2>Paso 2 — Guardarlo como <code>animacion.html</code> (aquí se atasca todo el mundo)</h2>
+<p>Este es <strong>el único paso que la gente hace mal</strong>, y por eso va con todas las letras.</p>
+<p>1. Abre el <strong>Bloc de notas</strong>. En Windows: tecla Windows → escribe <code>Bloc de notas</code> → Enter.</p>
+<p>2. Pega con <code>Ctrl + V</code>. Verás el código.</p>
+<p>3. Menú <strong>Archivo → Guardar como…</strong></p>
+<p>4. Muy importante, en la ventana que se abre:</p>
+<p>   - En <strong>«Tipo»</strong> (o «Guardar como tipo») elige <strong>«Todos los archivos»</strong>. No dejes</p>
+<p>     «Documentos de texto».</p>
+<p>   - En <strong>«Nombre del archivo»</strong> escribe exactamente: <code>animacion.html</code></p>
+<p>   - Elige un sitio donde lo encuentres, por ejemplo el <strong>Escritorio</strong>.</p>
+<p>5. Pulsa <strong>Guardar</strong>.</p>
+<h3>Cómo saber si lo has hecho bien</h3>
+<p>Mira el nombre del archivo en el Escritorio. Tiene que poner:</p>
+<pre><code>
+animacion.html          ← CORRECTO
+animacion.html.txt      ← MAL, hay que repetirlo
+animacion.txt           ← MAL
+</code></pre>
+<p>Si te ha salido <code>animacion.html.txt</code> es porque en el paso 4 no cambiaste **«Tipo» a «Todos</p>
+<p>los archivos»**. Windows esconde la extensión y te engaña: te crees que se llama</p>
+<p><code>animacion.html</code> cuando en realidad se llama <code>animacion.html.txt</code>.</p>
+<p>Si no consigues que salga bien, hay un truco que siempre funciona: al guardarlo ponle el</p>
+<p>nombre entre comillas, así:</p>
+<pre><code>
+&quot;animacion.html&quot;
+</code></pre>
+<p>Con las comillas, el Bloc de notas no le añade nada por su cuenta.</p>
+<hr>
+<h2>Paso 3 — Abrirlo</h2>
+<p><strong>Doble clic</strong> en el archivo.</p>
+<p>Se abre en tu navegador (Chrome, Edge, el que tengas) y <strong>ya está funcionando</strong>. No hace</p>
+<p>falta internet, no tarda, no pide nada.</p>
+<p>Si en vez de abrirse el navegador se abre otra vez el Bloc de notas: haz</p>
+<p><strong>clic derecho → Abrir con → Google Chrome</strong> (o Microsoft Edge).</p>
+<hr>
+<h2>Paso 4 — Cambiarlo</h2>
+<p>Aquí es donde empieza lo divertido. Un archivo, tres sitios donde tocar:</p>
+<p>1. <strong>Clic derecho en el archivo → Abrir con → Bloc de notas.</strong></p>
+<p>2. Escribe lo que quieras.</p>
+<p>3. <code>Ctrl + S</code> para guardar.</p>
+<p>4. Vuelve al navegador y pulsa <strong>F5</strong> para ver el cambio.</p>
+<h3>Qué tocar primero, por orden de facilidad</h3>
+<p><strong>a) Los colores.</strong> Busca (<code>Ctrl + B</code> en el Bloc de notas) los códigos que empiezan por <code>#</code>.</p>
+<p>Son colores, y casi todos están juntos al principio del archivo. Cambia por ejemplo</p>
+<p><code>#7c5cff</code> por <code>#ff2d55</code> y refresca.</p>
+<blockquote>Si no sabes de dónde sacar colores: escribe en Google «paleta de colores hex», elige uno y</blockquote>
+<blockquote>copia el código con el <code>#</code>. Da igual cuál: no se rompe nada.</blockquote>
+<p><strong>b) Los textos.</strong> Están entre las etiquetas, o sea entre <code>&gt;</code> y <code>&lt;</code>. Busca la palabra que</p>
+<p>ves en pantalla, sustitúyela por la tuya, y refresca.</p>
+<p><strong>c) Los números.</strong> Casi todos son velocidad, tamaño o cantidad. Prueba a doblarlos y a</p>
+<p>partirlos por la mitad: es la forma más rápida de entender qué hace cada uno.</p>
+<p><strong>d) Los comentarios.</strong> El código lleva comentarios escritos en español que explican **por</p>
+<p>qué** está hecho así. Búscalos: en JavaScript empiezan por <code>//</code>. Leyéndolos se aprende más</p>
+<p>que con cualquier curso.</p>
+<hr>
+<h2>Si algo sale mal</h2>
+<p><strong>No se puede estropear nada.</strong> El código no toca tu ordenador: sólo dibuja en una ventana</p>
+<p>del navegador. Si el archivo deja de verse, pasa esto:</p>
+<ul>
+<li><strong>Se ve la página en blanco.</strong> Un carácter se ha borrado sin querer. Vuelve a copiar el</li>
+<p>  código original desde el comentario fijado. Tarda 30 segundos y es más rápido que buscar el</p>
+<p>  fallo.</p>
+<li><strong>Se ve el código escrito en la pantalla, en vez de la animación.</strong> El archivo se llama</li>
+<p>  <code>animacion.html.txt</code>. Vuelve al paso 2.</p>
+<li><strong>Se abre el Bloc de notas.</strong> No tienes asociado el <code>.html</code> al navegador. Clic derecho →</li>
+<p>  Abrir con → Chrome.</p>
+</ul>
+<h3>Cómo ver el error de verdad (cuando ya te atrevas)</h3>
+<p>Pulsa <strong>F12</strong> en el navegador, y arriba elige la pestaña <strong>«Console»</strong>. Ahí el navegador</p>
+<p><strong>te dice en qué línea</strong> está el problema. Es la herramienta que usa todo el mundo, y la</p>
+<p>vas a usar el resto de tu vida.</p>
+<hr>
+<h2>Lo que NO necesitas</h2>
+<p>Para que no pierdas el tiempo buscándolo:</p>
+<ul>
+<li>❌ Instalar Node, ni npm, ni nada por el estilo.</li>
+<li>❌ Crear una cuenta en ningún sitio.</li>
+<li>❌ Un editor de código caro. El Bloc de notas vale. (Si quieres uno bueno y gratis:</li>
+<p>  <strong>Visual Studio Code</strong>, o <strong>Notepad++</strong>.)</p>
+<li>❌ Conexión a internet, salvo para copiar el código la primera vez.</li>
+<li>❌ Saber nada de antes.</li>
+</ul>
+<hr>
+<h2>Y un último consejo</h2>
+<p><strong>No leas el código entero de arriba abajo.</strong> Nadie lo hace. Elige una línea cualquiera,</p>
+<p>cámbiala, refresca, y mira qué pasa. Si no pasa nada visible, cambia otra. Así es como se</p>
+<p>aprende: cambiando cosas y viendo el resultado, no leyendo.</p>
+<p>Cuando lleves unos cuantos, vas a querer hacer tu propia animación. Para eso está el</p>
+<p><code>imagen → especificación → código</code> de <code>docs/FORMATO2.md</code>: le pasas una imagen de una</p>
+<p>animación que te guste a una IA, le pides la especificación, y luego el archivo.</p>
+</body></html>

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Un Solo Archivo</title>
+<meta name="description" content="Animaciones web con su codigo al lado. Un solo archivo HTML cada una, sin librerias.">
+<style>
+  :root{--tinta:#eef1ff;--tenue:#8b94b6;--acento:#7c5cff;--acento2:#22d3ee;--panel:#0d1117;--borde:#232a35}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#08090f;color:var(--tinta);-webkit-font-smoothing:antialiased;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.55}
+  a{color:var(--acento2)}
+  .cabeza{max-width:1120px;margin:0 auto;padding:15vh 24px 6vh;text-align:center}
+  h1{font-size:clamp(38px,7vw,78px);font-weight:800;letter-spacing:-.04em;line-height:1}
+  h1 em{font-style:normal;background:linear-gradient(100deg,var(--acento),var(--acento2));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .latido{margin-top:20px;font-size:clamp(15px,2vw,19px);color:var(--tenue)}
+  .aviso{margin:34px auto 0;max-width:660px;padding:16px 22px;border-radius:14px;
+    background:rgba(124,92,255,.10);border:1px solid rgba(124,92,255,.30);
+    font-size:15px;color:#c9cfe8}
+  .aviso b{color:#fff}
+
+  main{max-width:1120px;margin:0 auto;padding:4vh 24px 12vh;display:grid;gap:70px}
+  .clip{display:grid;grid-template-columns:370px 1fr;gap:42px;align-items:start}
+  @media(max-width:860px){.clip{grid-template-columns:1fr;gap:22px}}
+
+  .movil{width:370px;height:802px;max-width:100%;border-radius:46px;overflow:hidden;
+    background:#000;border:12px solid #1a1d28;box-shadow:0 0 0 2px #3d4459,
+    0 30px 70px rgba(0,0,0,.6),0 0 120px rgba(124,92,255,.14)}
+  @media(max-width:860px){.movil{height:min(802px,80vh)}}
+  .movil iframe{width:100%;height:100%;border:0;display:block}
+
+  .datos{padding-top:14px}
+  .datos h2{font-size:clamp(22px,3vw,32px);font-weight:750;letter-spacing:-.02em;line-height:1.15}
+  .que{margin-top:14px;font-size:17px;color:#c9cfe8}
+  .dato{margin-top:14px;padding-left:16px;border-left:2px solid var(--acento);
+    font-size:15px;color:var(--tenue)}
+  .meta{margin-top:14px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#5c6584}
+
+  .botones{margin-top:26px;display:flex;flex-wrap:wrap;gap:12px}
+  .botones button,.botones a{font:inherit;font-size:15px;font-weight:600;padding:13px 22px;
+    border-radius:11px;border:1px solid var(--borde);background:#111520;color:var(--tinta);
+    cursor:pointer;text-decoration:none;transition:transform .12s ease,border-color .12s ease}
+  .botones button:hover,.botones a:hover{transform:translateY(-2px);border-color:var(--acento)}
+  .botones .copiar{background:linear-gradient(100deg,var(--acento),#9a7cff);border-color:transparent;color:#fff}
+  .botones .copiar.hecho{background:linear-gradient(100deg,#12b981,#0ea5a4)}
+
+  footer{max-width:1120px;margin:0 auto;padding:0 24px 14vh;color:var(--tenue);font-size:15px}
+  footer h3{color:var(--tinta);font-size:20px;margin-bottom:12px}
+  footer ol{margin:14px 0 0 22px}
+  footer li{margin:8px 0}
+  code{background:#111520;border:1px solid var(--borde);border-radius:6px;padding:2px 7px;
+    font-family:ui-monospace,Consolas,monospace;font-size:13.5px}
+</style>
+</head>
+<body>
+
+<header class="cabeza">
+  <h1>Un Solo Archivo</h1>
+  <p class="latido">Animación arriba. El código que la hace, abajo.</p>
+  <div class="aviso">
+    <b>Cada animación es UN SOLO archivo HTML.</b> Sin librerías, sin instalaciones y sin
+    internet. Pulsa <b>Copiar código</b>, pégalo en el Bloc de notas, guárdalo como
+    <code>animacion.html</code> y haz doble clic. Ya está corriendo.
+  </div>
+</header>
+
+<main>
+<article class="clip" id="scenery-animation">
+  <div class="movil"><iframe loading="lazy" src="scenery-animation.html" width="370" height="802" title="Esta landing amanece sola y son 198 líneas de HTML" scrolling="no"></iframe></div>
+  <div class="datos">
+    <h2>Esta landing amanece sola y son 198 líneas de HTML</h2>
+    <p class="que">Un paisaje con parallax que pasa de la noche al día mientras baja la página.</p>
+    <p class="dato">No hay ni una imagen: hasta las estrellas son fillRect de 1,4 px.</p>
+    <p class="meta">198 lineas &middot; un solo archivo &middot; sin librerias</p>
+    <div class="botones">
+      <button class="copiar" data-src="scenery-animation.html">Copiar codigo</button>
+      <a class="descargar" href="scenery-animation.html" download="scenery-animation.html">Descargar .html</a>
+      <a class="abrir" href="scenery-animation.html" target="_blank" rel="noopener">Abrir</a>
+    </div>
+  </div>
+</article>
+<article class="clip" id="liquid-navigation">
+  <div class="movil"><iframe loading="lazy" src="liquid-navigation.html" width="370" height="802" title="El dock del iPhone hecho con 2 círculos y un filtro SVG" scrolling="no"></iframe></div>
+  <div class="datos">
+    <h2>El dock del iPhone hecho con 2 círculos y un filtro SVG</h2>
+    <p class="que">Un dock que se traga el indicador: la pestaña activa no salta, se desliza como líquido.</p>
+    <p class="dato">Separando las gotas más de un 30 % del salto, deja de parecer líquido y son dos bolas.</p>
+    <p class="meta">95 lineas &middot; un solo archivo &middot; sin librerias</p>
+    <div class="botones">
+      <button class="copiar" data-src="liquid-navigation.html">Copiar codigo</button>
+      <a class="descargar" href="liquid-navigation.html" download="liquid-navigation.html">Descargar .html</a>
+      <a class="abrir" href="liquid-navigation.html" target="_blank" rel="noopener">Abrir</a>
+    </div>
+  </div>
+</article>
+<article class="clip" id="holo-card">
+  <div class="movil"><iframe loading="lazy" src="holo-card.html" width="370" height="802" title="La tarjeta holográfica no lleva textura: es un degradado cónico girando" scrolling="no"></iframe></div>
+  <div class="datos">
+    <h2>La tarjeta holográfica no lleva textura: es un degradado cónico girando</h2>
+    <p class="que">Una tarjeta en 3D con reflejo holográfico que gira en ochos y flota.</p>
+    <p class="dato">Si el holograma girase por su cuenta en vez de con la tarjeta, la tarjeta parecería una pegatina.</p>
+    <p class="meta">47 lineas &middot; un solo archivo &middot; sin librerias</p>
+    <div class="botones">
+      <button class="copiar" data-src="holo-card.html">Copiar codigo</button>
+      <a class="descargar" href="holo-card.html" download="holo-card.html">Descargar .html</a>
+      <a class="abrir" href="holo-card.html" target="_blank" rel="noopener">Abrir</a>
+    </div>
+  </div>
+</article>
+<article class="clip" id="particle-text">
+  <div class="movil"><iframe loading="lazy" src="particle-text.html" width="370" height="802" title="12.000 partículas escribiendo, sin una sola imagen ni fuente cargada" scrolling="no"></iframe></div>
+  <div class="datos">
+    <h2>12.000 partículas escribiendo, sin una sola imagen ni fuente cargada</h2>
+    <p class="que">Un texto que se forma y explota: 12.000 puntos que persiguen un objetivo y se disgregan.</p>
+    <p class="dato">Los objetivos van barajados: asignados en orden, el texto se formaría como una cortinilla de izquierda a derecha.</p>
+    <p class="meta">156 lineas &middot; un solo archivo &middot; sin librerias</p>
+    <div class="botones">
+      <button class="copiar" data-src="particle-text.html">Copiar codigo</button>
+      <a class="descargar" href="particle-text.html" download="particle-text.html">Descargar .html</a>
+      <a class="abrir" href="particle-text.html" target="_blank" rel="noopener">Abrir</a>
+    </div>
+  </div>
+</article>
+<article class="clip" id="dark-mode-3d">
+  <div class="movil"><iframe loading="lazy" src="dark-mode-3d.html" width="370" height="802" title="El modo oscuro no es un fundido: es un círculo que crece desde el interruptor" scrolling="no"></iframe></div>
+  <div class="datos">
+    <h2>El modo oscuro no es un fundido: es un círculo que crece desde el interruptor</h2>
+    <p class="que">Un panel que cambia de tema mientras un círculo se abre desde el interruptor y descubre la versión clara.</p>
+    <p class="dato">El contenido se construye una vez y se copia en las dos capas: si divergieran, el círculo enseñaría otra cosa.</p>
+    <p class="meta">76 lineas &middot; un solo archivo &middot; sin librerias</p>
+    <div class="botones">
+      <button class="copiar" data-src="dark-mode-3d.html">Copiar codigo</button>
+      <a class="descargar" href="dark-mode-3d.html" download="dark-mode-3d.html">Descargar .html</a>
+      <a class="abrir" href="dark-mode-3d.html" target="_blank" rel="noopener">Abrir</a>
+    </div>
+  </div>
+</article>
+<article class="clip" id="magnetic-dots">
+  <div class="movil"><iframe loading="lazy" src="magnetic-dots.html" width="370" height="802" title="Un imán invisible deforma esta rejilla, y son 243 líneas de canvas" scrolling="no"></iframe></div>
+  <div class="datos">
+    <h2>Un imán invisible deforma esta rejilla, y son 243 líneas de canvas</h2>
+    <p class="que">Una rejilla de puntos que se abre en ojo allí por donde pasa una fuerza invisible.</p>
+    <p class="dato">Este código lo escribió un modelo a partir de TRES fotogramas de la animación: el movimiento no está en ninguno de los tres, está en la diferencia entre ellos.</p>
+    <p class="meta">243 lineas &middot; un solo archivo &middot; sin librerias</p>
+    <div class="botones">
+      <button class="copiar" data-src="magnetic-dots.html">Copiar codigo</button>
+      <a class="descargar" href="magnetic-dots.html" download="magnetic-dots.html">Descargar .html</a>
+      <a class="abrir" href="magnetic-dots.html" target="_blank" rel="noopener">Abrir</a>
+    </div>
+  </div>
+</article>
+</main>
+
+<footer>
+  <h3>Si nunca has programado</h3>
+  <ol>
+    <li>Pulsa <b>Copiar código</b> en la animación que te guste.</li>
+    <li>Abre el <b>Bloc de notas</b> y pega con <code>Ctrl + V</code>.</li>
+    <li><b>Archivo → Guardar como</b>. En «Tipo» elige <b>Todos los archivos</b> y ponle de
+        nombre <code>animacion.html</code>. Tiene que acabar en <code>.html</code> y NO en
+        <code>.html.txt</code>.</li>
+    <li>Doble clic en el archivo. Se abre en tu navegador y ya funciona.</li>
+  </ol>
+  <p style="margin-top:22px">
+    La explicación larga, con los dos sitios donde la gente se atasca y cómo salir de ellos:
+    <a href="como-usarlo.html">Cómo usar el código</a>.
+  </p>
+</footer>
+
+<script>
+// El boton de copiar usa fetch y no un texto incrustado en el HTML, para que lo que se copia
+// sea SIEMPRE el fichero que se esta viendo en el iframe de al lado. Si algun dia se toca una
+// animacion, la web no puede quedarse con el codigo viejo: esa es toda la promesa del canal.
+document.querySelectorAll('.copiar').forEach(function (b) {
+  b.addEventListener('click', async function () {
+    const antes = b.textContent;
+    try {
+      const r = await fetch(b.dataset.src);
+      if (!r.ok) throw new Error(r.status);
+      const codigo = await r.text();
+      try {
+        await navigator.clipboard.writeText(codigo);
+      } catch (e) {
+        // Sin https ni con file:// el portapapeles moderno no existe: se usa el viejo.
+        const t = document.createElement('textarea');
+        t.value = codigo;
+        t.style.position = 'fixed';
+        t.style.opacity = '0';
+        document.body.appendChild(t);
+        t.select();
+        document.execCommand('copy');
+        t.remove();
+      }
+      b.textContent = '¡Copiado!';
+      b.classList.add('hecho');
+    } catch (e) {
+      // Si el fetch falla (abierto con doble clic, sin servidor), el boton de descarga sigue
+      // funcionando: nunca se deja al usuario sin salida.
+      b.textContent = 'Usa «Descargar .html»';
+    }
+    setTimeout(function () {
+      b.textContent = antes;
+      b.classList.remove('hecho');
+    }, 2200);
+  });
+});
+</script>
+</body>
+</html>

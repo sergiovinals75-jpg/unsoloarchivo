@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Holographic Cards</title>
+<style>
+  :root{--tinta:#f5f7ff;--tenue:#8b94b6}
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:#050609;color:var(--tinta);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+
+  /* El escenario: una perspectiva grande y un poco de giro base. Sin perspective, un
+     rotateY no se ve como profundidad, se ve como un estiron horizontal. */
+  .escena{position:fixed;inset:0;display:grid;place-items:center;
+    perspective:1100px;perspective-origin:50% 42%}
+  /* Los tres elementos van en la MISMA celda de la rejilla: asi quedan centrados uno
+     sobre otro sin depender de la posicion estatica de un absoluto, que dentro de una
+     rejilla no esta donde parece. */
+  .capa{position:relative;display:grid;grid-template-areas:"pila";place-items:center;
+    transform-style:preserve-3d}
+  .capa > *{grid-area:pila}
+
+  .carta{position:relative;width:70vw;aspect-ratio:.63;border-radius:4.5vw;
+    transform-style:preserve-3d;will-change:transform}
+  .carta .cara{position:absolute;inset:0;border-radius:inherit;overflow:hidden;
+    border:1px solid rgba(255,255,255,.16)}
+
+  /* El holograma es un degradado conico girando, recortado por una mascara que solo deja
+     pasar las bandas: eso es lo que lo separa de "un degradado de colores". */
+  .holo{background:conic-gradient(from 0deg,#ff5ec7,#ffd166,#5ee7df,#7c5cff,#ff5ec7)}
+  .holo::after{content:'';position:absolute;inset:0;
+    background:repeating-linear-gradient(112deg,rgba(255,255,255,.85) 0 2px,
+      rgba(255,255,255,0) 2px 9px);
+    background-position:var(--paso,0px) 0;
+    mix-blend-mode:overlay;opacity:.55}
+  .brillo{position:absolute;inset:0;background:radial-gradient(60% 45% at var(--mx,50%) var(--my,30%),
+    rgba(255,255,255,.55),transparent 62%);mix-blend-mode:screen}
+  .texto{position:absolute;left:0;right:0;bottom:0;padding:6vw 5.5vw;
+    background:linear-gradient(transparent,rgba(4,5,10,.86) 55%)}
+  .texto b{display:block;font-size:5.6vw;font-weight:800;letter-spacing:-.03em;line-height:1}
+  .texto i{display:block;font-style:normal;font-size:1.5vh;letter-spacing:.28em;
+    text-transform:uppercase;color:var(--tenue);margin-top:1.2vh}
+  .sello{position:absolute;top:4.5vw;right:4.5vw;font-size:1.3vh;letter-spacing:.24em;
+    text-transform:uppercase;padding:.9vh 2.6vw;border-radius:99px;
+    background:rgba(4,5,10,.5);border:1px solid rgba(255,255,255,.22)}
+
+  /* Las dos cartas de detras, en 3D de verdad: se van separando en Z conforme gira. */
+  .trasera{position:absolute;width:66vw;aspect-ratio:.63;border-radius:4.2vw;
+    border:1px solid rgba(255,255,255,.10);
+    background:linear-gradient(150deg,rgba(124,92,255,.20),rgba(34,211,238,.10));
+    transform:translateZ(-70px) translateY(-2.5vh) scale(.94)}
+  .trasera.dos{transform:translateZ(-140px) translateY(-5vh) scale(.88);opacity:.6}
+
+  .pie{position:fixed;left:0;right:0;bottom:4.6vh;text-align:center;
+    font-size:1.3vh;letter-spacing:.3em;text-transform:uppercase;color:var(--tenue)}
+</style>
+</head>
+<body>
+<div class="escena">
+  <div class="capa">
+    <div class="trasera dos"></div>
+    <div class="trasera uno"></div>
+    <div class="carta" id="carta">
+      <div class="cara">
+        <div class="holo" style="position:absolute;inset:0"></div>
+        <div class="brillo" id="brillo"></div>
+        <div class="sello">1 / 24</div>
+        <div class="texto"><b>HOLO</b><i>tarjeta con degradado conico</i></div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="pie">tilt 3d &middot; sin imagenes</p>
+
+<script>
+// ------------------------------------------------------------------ escena ----
+const carta = document.getElementById('carta');
+const brillo = document.getElementById('brillo');
+
+// ------------------------------------------------------------- el recorrido ----
+function dibujar(t) {
+  const total = (window.__DURACION_MS || 26000) / 1000;
+  const P = Math.min(0.9999, (t % total) / total);
+
+  // Un giro en ochos: dos senos desfasados. Es lo que hace el efecto "tarjeta de
+  // coleccionista" y sale mas natural que un barrido lineal de un lado a otro.
+  const a = P * Math.PI * 2;
+  const ry = Math.sin(a) * 26;            // grados de giro horizontal
+  const rx = Math.sin(a * 2 + 1.1) * 13;  // y un poco de vertical, al doble de frecuencia
+  const rz = Math.sin(a + 0.6) * 3;
+
+  // La carta se acerca y se aleja: da la sensacion de que flota.
+  const z = 40 + Math.sin(a * 0.5) * 34;
+
+  carta.style.transform =
+    `translateZ(${z}px) rotateX(${rx}deg) rotateY(${ry}deg) rotate(${rz}deg)`;
+
+  // El brillo sigue al giro, no al tiempo: si se mueve solo, deja de parecer reflejado.
+  const mx = 50 + ry * 1.7;
+  const my = 32 + rx * 2.1;
+  brillo.style.setProperty('--mx', mx.toFixed(1) + '%');
+  brillo.style.setProperty('--my', my.toFixed(1) + '%');
+  brillo.style.opacity = (0.35 + 0.35 * Math.cos(a)).toFixed(3);
+
+  // El holograma gira con la carta y no con el reloj. Es el detalle que lo hace creible:
+  // si el degradado girara por su cuenta, la carta pareceria una pegatina.
+  // Las bandas finas tambien se desplazan desde AQUI y no con una animacion CSS: una
+  // animacion CSS no obedece a __seek, y en modo captura saldria siempre en el mismo sitio.
+  const holo = document.querySelector('.holo');
+  holo.style.filter = `hue-rotate(${(ry * 4 + P * 220).toFixed(0)}deg)`;
+  holo.style.setProperty('--paso', ((P * 900) % 9).toFixed(2) + 'px');
+}
+
+// -------------------------------------------------- modo captura (opcional) --
+let T = 0;
+window.__seek = function (ms) { T = ms / 1000; dibujar(T); };
+if (!window.__MODO_CAPTURA) {
+  const t0 = performance.now();
+  (function bucle(x) { dibujar((x - t0) / 1000); requestAnimationFrame(bucle); })(t0);
+} else {
+  dibujar(0);
+}
+</script>
+</body>
+</html>

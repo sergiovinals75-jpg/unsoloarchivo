@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Retícula con campo de influencia</title>
+<style>
+  /* Reset mínimo: queremos que el canvas ocupe exactamente el viewport
+     sin scroll ni márgenes fantasma que descoloquen las coordenadas
+     de la retícula respecto a las del vídeo grabado. */
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    background: #000000;
+    overflow: hidden;
+  }
+
+  /* El canvas se estira al 100% del viewport. Usamos position:fixed
+     para que ningún reflujo del DOM (por ejemplo el indicador de hora)
+     pueda empujarlo y desplazar la retícula un píxel. */
+  #lienzo {
+    position: fixed;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: #000000;
+  }
+
+  /* Indicador de estado "12:04". Va en DOM y no en canvas porque es
+     texto estático que nunca se mueve: dibujarlo en canvas obligaría
+     a redibujarlo en cada __seek sin ninguna ganancia. */
+  #estado {
+    position: fixed;
+    top: 14px;
+    left: 16px;
+    color: #FFFFFF;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    /* Sin selección ni eventos: es decoración, no UI interactiva. */
+    user-select: none;
+    pointer-events: none;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+  <canvas id="lienzo"></canvas>
+  <div id="estado">12:04</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ------------------------------------------------------------------
+  // CONSTANTES DE DISEÑO
+  // ------------------------------------------------------------------
+  // Todas las medidas están pensadas para un viewport vertical de móvil
+  // (~370x802). El canvas se redimensiona al tamaño real del viewport,
+  // pero la retícula se genera en coordenadas de CSS píxel para que la
+  // densidad de puntos sea la misma independientemente del DPR.
+
+  var SEPARACION = 22;          // paso de la retícula en px
+  var RADIO_PUNTO_BASE = 1.1;   // radio del punto tenue de fondo
+  var RADIO_PUNTO_ACTIVO = 2.2; // radio del punto iluminado dentro del campo
+  var RADIO_INFLUENCIA = 120;   // radio del campo circular de influencia
+
+  // Colores exactos de la especificación.
+  var COLOR_FONDO = "#000000";
+  var COLOR_PUNTO_BASE = "#1A2A2A";
+  var COLOR_PUNTO_ACTIVO = "#E0F0F0";
+  var COLOR_CAMPO = "#0A1A1A";
+
+  // ------------------------------------------------------------------
+  // TRAYECTORIA DEL CENTRO DEL CAMPO
+  // ------------------------------------------------------------------
+  // Tres fotogramas clave descritos en la especificación, en coordenadas
+  // de imagen de 360x800. Los normalizamos a fracciones del viewport para
+  // que la animación escale bien a cualquier tamaño de ventana.
+  //
+  //   t=0.00 -> (100, 200)
+  //   t=0.50 -> (200, 300)
+  //   t=1.00 -> (150, 600)
+  //
+  // El reparto temporal es 50/50 porque la especificación describe dos
+  // tramos de desplazamiento claramente distintos (uno diagonal corto y
+  // otro predominantemente vertical y más largo). Repartirlos a la mitad
+  // respeta la lectura de "aceleración en la fase final" sin inventarnos
+  // una curva de easing que no podemos deducir de tres fotogramas.
+  var CLAVES = [
+    { t: 0.00, x: 100 / 360, y: 200 / 800 },
+    { t: 0.50, x: 200 / 360, y: 300 / 800 },
+    { t: 1.00, x: 150 / 360, y: 600 / 800 }
+  ];
+
+  // ------------------------------------------------------------------
+  // ESTADO DEL CANVAS
+  // ------------------------------------------------------------------
+  var lienzo = document.getElementById("lienzo");
+  var ctx = lienzo.getContext("2d");
+  var anchoCSS = 0;
+  var altoCSS = 0;
+  var dpr = 1;
+
+  // Retícula precalculada: guardamos las posiciones base para no tener
+  // que recalcular la malla en cada fotograma. Solo se regenera cuando
+  // cambia el tamaño del viewport.
+  var puntos = [];
+
+  function construirReticula() {
+    puntos.length = 0;
+    // Centramos la malla para que el patrón quede equilibrado en el
+    // viewport y no aparezca un borde "cortado" asimétrico.
+    var offsetX = (anchoCSS % SEPARACION) / 2;
+    var offsetY = (altoCSS % SEPARACION) / 2;
+    for (var y = offsetY; y <= altoCSS; y += SEPARACION) {
+      for (var x = offsetX; x <= anchoCSS; x += SEPARACION) {
+        puntos.push({ x: x, y: y });
+      }
+    }
+  }
+
+  function redimensionar() {
+    dpr = window.devicePixelRatio || 1;
+    anchoCSS = window.innerWidth;
+    altoCSS = window.innerHeight;
+    // Escalamos el buffer interno por DPR y luego aplicamos una
+    // transformación para poder dibujar en píxeles CSS. Así los puntos
+    // quedan nítidos en pantallas retina sin cambiar las coordenadas.
+    lienzo.width = Math.round(anchoCSS * dpr);
+    lienzo.height = Math.round(altoCSS * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    construirReticula();
+  }
+
+  // ------------------------------------------------------------------
+  // INTERPOLACIÓN DE LA POSICIÓN DEL CAMPO
+  // ------------------------------------------------------------------
+  // Interpolación lineal por tramos entre las claves. Devolvemos el
+  // centro en píxeles CSS del viewport actual.
+  function centroEn(t) {
+    if (t <= CLAVES[0].t) {
+      return { x: CLAVES[0].x * anchoCSS, y: CLAVES[0].y * altoCSS };
+    }
+    if (t >= CLAVES[CLAVES.length - 1].t) {
+      var ult = CLAVES[CLAVES.length - 1];
+      return { x: ult.x * anchoCSS, y: ult.y * altoCSS };
+    }
+    for (var i = 0; i < CLAVES.length - 1; i++) {
+      var a = CLAVES[i];
+      var b = CLAVES[i + 1];
+      if (t >= a.t && t <= b.t) {
+        var u = (t - a.t) / (b.t - a.t);
+        return {
+          x: (a.x + (b.x - a.x) * u) * anchoCSS,
+          y: (a.y + (b.y - a.y) * u) * altoCSS
+        };
+      }
+    }
+    return { x: 0, y: 0 };
+  }
+
+  // ------------------------------------------------------------------
+  // DIBUJO DE UN FOTOGRAMA
+  // ------------------------------------------------------------------
+  // Orden de capas, de atrás a delante:
+  //   0. fondo negro
+  //   1. retícula de puntos base
+  //   2. campo de influencia (gradiente radial)
+  //   3. puntos desplazados/iluminados dentro del campo
+  //   4. indicador "12:04" (DOM, no se toca aquí)
+  function pintar(t) {
+    // Capa 0: fondo. Limpiamos todo el buffer con negro sólido.
+    ctx.fillStyle = COLOR_FONDO;
+    ctx.fillRect(0, 0, anchoCSS, altoCSS);
+
+    var centro = centroEn(t);
+
+    // Capa 1: retícula base. Todos los puntos tenues, sin desplazar.
+    // Los dibujamos primero para que el campo y los puntos activos
+    // queden por encima.
+    ctx.fillStyle = COLOR_PUNTO_BASE;
+    for (var i = 0; i < puntos.length; i++) {
+      var p = puntos[i];
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, RADIO_PUNTO_BASE, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Capa 2: campo de influencia. Gradiente radial desde el centro
+    // hacia el borde. Usamos un gradiente con parada en el centro y
+    // otra en el radio para que la mancha se difumine suavemente.
+    var grad = ctx.createRadialGradient(
+      centro.x, centro.y, 0,
+      centro.x, centro.y, RADIO_INFLUENCIA
+    );
+    grad.addColorStop(0, COLOR_CAMPO);
+    grad.addColorStop(1, "rgba(10, 26, 26, 0)");
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(centro.x, centro.y, RADIO_INFLUENCIA, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Capa 3: puntos activos. Recorremos la misma retícula y, para los
+    // puntos dentro del radio, los desplazamos radialmente hacia el
+    // centro (efecto de atracción) y los pintamos claros.
+    //
+    // El factor de desplazamiento crece hacia el centro: en el borde
+    // del radio el desplazamiento es 0 y en el centro es máximo. Esto
+    // produce la sensación de "tirón" descrita en la especificación.
+    var r2 = RADIO_INFLUENCIA * RADIO_INFLUENCIA;
+    ctx.fillStyle = COLOR_PUNTO_ACTIVO;
+    for (var j = 0; j < puntos.length; j++) {
+      var q = puntos[j];
+      var dx = q.x - centro.x;
+      var dy = q.y - centro.y;
+      var d2 = dx * dx + dy * dy;
+      if (d2 > r2) continue;
+
+      var d = Math.sqrt(d2);
+      // 1 en el centro, 0 en el borde del radio.
+      var fuerza = 1 - d / RADIO_INFLUENCIA;
+      // Desplazamos hacia el centro una fracción de la distancia.
+      // 0.55 da un tirón visible sin colapsar todos los puntos en un
+      // único punto ilegible.
+      var k = 0.55 * fuerza;
+      var nx = q.x - dx * k;
+      var ny = q.y - dy * k;
+
+      // El radio del punto activo también crece ligeramente hacia el
+      // centro para reforzar la lectura de luminosidad.
+      var r = RADIO_PUNTO_ACTIVO * (0.7 + 0.3 * fuerza);
+      ctx.beginPath();
+      ctx.arc(nx, ny, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // ------------------------------------------------------------------
+  // API DE CAPTURA
+  // ------------------------------------------------------------------
+  // __seek pinta el estado exacto en un instante dado. Se llama una vez
+  // por fotograma grabado, en orden, de 0 a __DURACION_MS.
+  window.__seek = function (ms) {
+    var dur = window.__DURACION_MS || 1;
+    var t = ms / dur;
+    if (t < 0) t = 0;
+    if (t > 1) t = 1;
+    pintar(t);
+  };
+
+  // ------------------------------------------------------------------
+  // MODO CAPTURA vs MODO AUTÓNOMO
+  // ------------------------------------------------------------------
+  // En modo captura NO arrancamos ningún bucle propio: el navegador
+  // automatizado controla el tiempo llamando a __seek. Cualquier
+  // requestAnimationFrame aquí competiría con la grabación y produciría
+  // fotogramas duplicados o saltados.
+  if (window.__MODO_CAPTURA) {
+    // Solo nos aseguramos de tener el canvas dimensionado antes del
+    // primer __seek. No hay animación propia.
+    redimensionar();
+    window.addEventListener("resize", function () {
+      redimensionar();
+    });
+  } else {
+    // Modo autónomo: al abrir el archivo a mano, la animación corre sola
+    // una sola vez de principio a fin, usando __DURACION_MS como
+    // duración real. Si no estuviera definida, usamos un valor de
+    // respaldo razonable para que la demo sea visible.
+    redimensionar();
+    window.addEventListener("resize", function () {
+      redimensionar();
+    });
+
+    var duracion = window.__DURACION_MS || 6000;
+    var inicio = null;
+
+    function bucle(ts) {
+      if (inicio === null) inicio = ts;
+      var transcurrido = ts - inicio;
+      var t = transcurrido / duracion;
+      if (t > 1) t = 1;
+      pintar(t);
+      // Se detiene al llegar al final: la animación es de un solo
+      // recorrido, no un ciclo, para que el vídeo no muestre una unión
+      // brusca entre el final y el principio.
+      if (t < 1) {
+        requestAnimationFrame(bucle);
+      }
+    }
+    requestAnimationFrame(bucle);
+  }
+})();
+</script>
+</body>
+</html>

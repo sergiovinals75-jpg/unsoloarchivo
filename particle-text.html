@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Particle Text</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;overflow:hidden;background:#05060c;
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  #lienzo{position:fixed;inset:0;width:100%;height:100%;display:block}
+  .pie{position:fixed;left:0;right:0;bottom:5vh;text-align:center;
+    font-size:1.3vh;letter-spacing:.32em;text-transform:uppercase;color:#7d87ab}
+  .marca{position:fixed;top:7vh;left:0;right:0;text-align:center;
+    font-size:1.3vh;letter-spacing:.3em;text-transform:uppercase;color:#4d5678}
+</style>
+</head>
+<body>
+<canvas id="lienzo"></canvas>
+<p class="marca">canvas 2d</p>
+<p class="pie" id="pie"></p>
+
+<script>
+// ------------------------------------------------------------------ lienzo ----
+const cv = document.getElementById('lienzo');
+const ctx = cv.getContext('2d', { alpha: false });
+let W = 0, H = 0;
+
+function medir() {
+  const d = window.devicePixelRatio || 1;
+  W = cv.width = Math.round(innerWidth * d);
+  H = cv.height = Math.round(innerHeight * d);
+  cv.style.width = innerWidth + 'px';
+  cv.style.height = innerHeight + 'px';
+}
+
+// ------------------------------------------------------- ruido con semilla ----
+function azar(semilla) {
+  let s = semilla >>> 0;
+  return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
+}
+
+// ---------------------------------------------------- las palabras, a puntos ----
+// El texto no se dibuja: se dibuja en un canvas APARTE y se leen sus pixeles. Cada
+// pixel encendido es un objetivo al que se ata una particula. Asi el texto puede ser
+// cualquier palabra sin cargar una sola fuente ni un solo sprite.
+const PALABRAS = ['CODIGO', 'EN', 'MOVIMIENTO'];
+const objetivos = [];
+
+function muestrear(palabra) {
+  const m = document.createElement('canvas');
+  m.width = W; m.height = H;
+  const c = m.getContext('2d');
+  const grande = Math.min(W / (palabra.length * 0.80), H * 0.22);
+  c.fillStyle = '#fff';
+  c.font = `800 ${grande}px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif`;
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  c.fillText(palabra, W / 2, H * 0.5);
+  const datos = c.getImageData(0, 0, W, H).data;
+  const paso = Math.max(2, Math.round(grande / 34));   // densidad de puntos
+  const pts = [];
+  for (let y = 0; y < H; y += paso) {
+    for (let x = 0; x < W; x += paso) {
+      if (datos[(y * W + x) * 4 + 3] > 128) pts.push([x, y]);
+    }
+  }
+  return pts;
+}
+
+// --------------------------------------------------------------- particulas ----
+const N = 12000;
+const PASOS = 60;                       // pasos de fisica por segundo simulado
+const particulas = [];
+let rnd = azar(17);
+
+function construir() {
+  medir();
+  objetivos.length = 0;
+  for (const p of PALABRAS) objetivos.push(muestrear(p));
+  // A cada palabra, sus puntos BARAJEADOS: si se asignan en orden, el texto se forma
+  // como un barrido de izquierda a derecha y se lee como una cortinilla, no como una
+  // explosion. Barajados, se forma a la vez en todas partes.
+  for (const lista of objetivos) {
+    for (let i = lista.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [lista[i], lista[j]] = [lista[j], lista[i]];
+    }
+  }
+  document.getElementById('pie').textContent = `${N.toLocaleString('es')} particulas`;
+  void objetivos;
+  reiniciar();
+}
+
+function reiniciar() {
+  rnd = azar(17);
+  particulas.length = 0;
+  for (let i = 0; i < N; i++) {
+    particulas.push({
+      x: rnd() * W, y: rnd() * H, vx: 0, vy: 0,
+      t: i,                              // indice dentro de la palabra (fijo)
+      sem: 0.55 + rnd() * 0.75,          // rigidez: unas llegan antes que otras
+      tam: 0.9 + rnd() * 1.5,
+      tono: rnd(),
+    });
+  }
+}
+
+// ---------------------------------------------------------------- el estado ----
+// Cual palabra y en que punto de su tramo, para un instante dado. Es una funcion pura
+// de t: aqui no hay memoria.
+function estado(t) {
+  const total = (window.__DURACION_MS || 26000) / 1000;
+  const P = Math.min(0.9999, (t % total) / total);
+  const tramo = P * PALABRAS.length;
+  const idx = Math.min(PALABRAS.length - 1, Math.floor(tramo));
+  const u = tramo - idx;
+  const volando = u > 0.80;             // explosion: sin destino, salen disparadas
+  const destino = objetivos[Math.min(PALABRAS.length - 1, volando ? idx + 1 : idx)];
+  const empuje = volando ? Math.sin((u - 0.80) / 0.20 * Math.PI) * 26 : 0;
+  return { destino, empuje, volando };
+}
+
+function paso(t) {
+  const { destino, empuje } = estado(t);
+  const len = destino.length;
+  const hx = W / 2, hy = H / 2;
+  for (let i = 0; i < N; i++) {
+    const p = particulas[i];
+    const [ox, oy] = destino[(p.t * 8) % len];
+    const rigidez = 0.055 * p.sem;
+    // la explosion empuja hacia FUERA, desde el centro de la pantalla
+    const ang = Math.atan2(p.y - hy, p.x - hx) + p.tono * 1.5;
+    p.vx = (p.vx + (ox - p.x) * rigidez + Math.cos(ang) * empuje * p.sem) * 0.86;
+    p.vy = (p.vy + (oy - p.y) * rigidez + Math.sin(ang) * empuje * p.sem) * 0.86;
+    p.x += p.vx; p.y += p.vy;
+  }
+}
+
+function pintar() {
+  ctx.fillStyle = '#05060c';
+  ctx.fillRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < N; i++) {
+    const p = particulas[i];
+    // El color va por INDICE, no por posicion: asi el degradado se queda quieto en la
+    // palabra mientras las particulas viajan, en vez de pasar por encima de ellas.
+    const c = p.tono;
+    ctx.fillStyle = `rgba(${(120 + 130 * c) | 0},${(110 + 90 * (1 - c)) | 0},255,.72)`;
+    ctx.fillRect(p.x, p.y, p.tam * 1.6, p.tam * 1.6);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+// ---------------------------------------------------- avanzar hasta un instante ----
+// ESTA ES LA DIFERENCIA CON LAS DEMAS PAGINAS, y hay que decirla: aqui el estado no es
+// una funcion de t, es una simulacion. No se puede saltar a t=12 s y pintar, porque el
+// resultado depende de todos los pasos anteriores. Lo que se hace es avanzar la fisica
+// desde el ultimo instante pedido y PINTAR UNA SOLA VEZ: la simulacion va a 60 pasos por
+// segundo simulado, el dibujo solo al ritmo de los fotogramas que se capturan.
+let T = -1;
+function irA(t) {
+  if (T < 0 || t < T) { reiniciar(); T = 0; }
+  const n = Math.min(1200, Math.max(0, Math.round((t - T) * PASOS)));
+  for (let k = 0; k < n; k++) paso(T + (k + 1) / PASOS);
+  T = t;
+  pintar();
+}
+
+// -------------------------------------------------- modo captura (opcional) --
+window.__seek = function (ms) { irA(ms / 1000); };
+addEventListener('resize', () => { construir(); irA(Math.max(0, T)); });
+construir();
+if (!window.__MODO_CAPTURA) {
+  const t0 = performance.now();
+  (function bucle(a) { irA((a - t0) / 1000); requestAnimationFrame(bucle); })(t0);
+} else {
+  irA(0);
+}
+</script>
+</body>
+</html>
